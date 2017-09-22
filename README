@@ -1,6 +1,14 @@
-slock - simple screen locker
-============================
+slock - simple screen locker with DPMS-Patch
+============================================
 simple screen locker utility for X. 
+
+DPMS-Patch
+----------
+This patched version in the dpms-branch tries to disable the monitor with
+a timeout of one second.
+
+A patchable diff against version 1.4 can be created by:
+    git diff 1.4 slock.c
 
 
 Requirements
