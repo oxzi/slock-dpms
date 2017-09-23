@@ -4,11 +4,12 @@ simple screen locker utility for X.
 
 DPMS-Patch
 ----------
-This patched version in the dpms-branch tries to disable the monitor with
-a timeout of one second.
+The patched version in the dpms-branch tries to disable the monitor after
+a timeout of five second per default. This value can be configured.
 
 A patchable diff against version 1.4 can be created by:
-    git diff 1.4 slock.c
+
+    git diff 1.4 slock.c config.def.h
 
 
 Requirements
