@@ -291,14 +291,6 @@ lockscreen(Display *dpy, struct xrandr *rr, int screen)
 }
 
 static void
-monitorreset(Display* dpy, CARD16 standby, CARD16 suspend, CARD16 off)
-{
-	DPMSSetTimeouts(dpy, standby, suspend, off);
-	DPMSForceLevel(dpy, DPMSModeOn);
-	XFlush(dpy);
-}
-
-static void
 usage(void)
 {
 	die("usage: slock [-v] [cmd [arg ...]]\n");
@@ -376,7 +368,7 @@ main(int argc, char **argv) {
 	if (nlocks != nscreens)
 		return 1;
 
-	/* DPMS-magic to disable the monitor */
+	/* DPMS magic to disable the monitor */
 	if (!DPMSCapable(dpy))
 		die("slock: DPMSCapable failed\n");
 	if (!DPMSEnable(dpy))
@@ -384,11 +376,11 @@ main(int argc, char **argv) {
 	if (!DPMSGetTimeouts(dpy, &standby, &suspend, &off))
 		die("slock: DPMSGetTimeouts failed\n");
 	if (!standby || !suspend || !off)
-		/* set values if there arent some */
-		standby = suspend = off = 300;
+		die("slock: at least one DPMS variable is zero\n");
+	if (!DPMSSetTimeouts(dpy, monitortime, monitortime, monitortime))
+		die("slock: DPMSSetTimeouts failed\n");
 
-	DPMSSetTimeouts(dpy, monitortime, monitortime, monitortime);
-	XFlush(dpy);
+	XSync(dpy, 0);
 
 	/* run post-lock command */
 	if (argc > 0) {
@@ -396,8 +388,6 @@ main(int argc, char **argv) {
 		case -1:
 			die("slock: fork failed: %s\n", strerror(errno));
 		case 0:
-			monitorreset(dpy, standby, suspend, off);
-
 			if (close(ConnectionNumber(dpy)) < 0)
 				die("slock: close: %s\n", strerror(errno));
 			execvp(argv[0], argv);
@@ -410,7 +400,8 @@ main(int argc, char **argv) {
 	readpw(dpy, &rr, locks, nscreens, hash);
 
 	/* reset DPMS values to inital ones */
-	monitorreset(dpy, standby, suspend, off);
+	DPMSSetTimeouts(dpy, standby, suspend, off);
+	XSync(dpy, 0);
 
 	return 0;
 }
