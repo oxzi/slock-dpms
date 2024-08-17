@@ -178,7 +178,7 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 				break;
 			case XK_BackSpace:
 				if (len)
-					passwd[len--] = '\0';
+					passwd[--len] = '\0';
 				break;
 			default:
 				if (num && !iscntrl((int)buf[0]) &&
@@ -202,13 +202,21 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 			rre = (XRRScreenChangeNotifyEvent*)&ev;
 			for (screen = 0; screen < nscreens; screen++) {
 				if (locks[screen]->win == rre->window) {
-					XResizeWindow(dpy, locks[screen]->win,
-					              rre->width, rre->height);
+					if (rre->rotation == RR_Rotate_90 ||
+					    rre->rotation == RR_Rotate_270)
+						XResizeWindow(dpy, locks[screen]->win,
+						              rre->height, rre->width);
+					else
+						XResizeWindow(dpy, locks[screen]->win,
+						              rre->width, rre->height);
 					XClearWindow(dpy, locks[screen]->win);
+					break;
 				}
 			}
-		} else for (screen = 0; screen < nscreens; screen++)
-			XRaiseWindow(dpy, locks[screen]->win);
+		} else {
+			for (screen = 0; screen < nscreens; screen++)
+				XRaiseWindow(dpy, locks[screen]->win);
+		}
 	}
 }
 
